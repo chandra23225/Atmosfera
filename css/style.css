@@ -1,0 +1,377 @@
+/* ── Reset & Base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  height: 100vh;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #0a0a1a;
+  color: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top Bar ──────────────────────────────────────────────────────────────── */
+.topbar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: rgba(10, 10, 26, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.logo-icon {
+  font-size: 1.3rem;
+}
+
+.logo-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.85);
+  background: linear-gradient(135deg, #fff 30%, #64b4ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Search Bar ───────────────────────────────────────────────────────────── */
+.search-bar {
+  display: flex;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50px;
+  overflow: hidden;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.search-bar:focus-within {
+  border-color: rgba(100, 180, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(100, 180, 255, 0.1);
+}
+
+.search-bar input {
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0.6rem 1.2rem;
+  color: #fff;
+  font-size: 0.95rem;
+  width: 260px;
+}
+
+.search-bar input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.search-bar button {
+  background: transparent;
+  border: none;
+  padding: 0 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.search-bar button:hover {
+  color: #64b4ff;
+}
+
+/* ── Globe ────────────────────────────────────────────────────────────────── */
+#globe-container {
+  flex: 1;
+  position: relative;
+  cursor: grab;
+}
+
+#globe-container:active {
+  cursor: grabbing;
+}
+
+#globe-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Loading Spinner ──────────────────────────────────────────────────────── */
+.spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(255, 255, 255, 0.07);
+  border-top-color: #64b4ff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.spinner.show {
+  opacity: 1;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ── Toast Notification ───────────────────────────────────────────────────── */
+.toast {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: rgba(255, 80, 80, 0.1);
+  border: 1px solid rgba(255, 80, 80, 0.3);
+  border-radius: 50px;
+  padding: 0.45rem 1.2rem;
+  font-size: 0.82rem;
+  color: #ff8080;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  z-index: 20;
+  white-space: nowrap;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Weather Panel ────────────────────────────────────────────────────────── */
+.panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 1rem 1.5rem 1.5rem;
+  background: linear-gradient(to top, rgba(10, 10, 26, 0.98) 65%, transparent);
+  transform: translateY(100%);
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.panel.visible {
+  transform: translateY(0);
+}
+
+.panel-inner {
+  max-width: 740px;
+  margin: 0 auto;
+}
+
+.city-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.2rem;
+}
+
+.city-row h2 {
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.city-row .country {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.date-row {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.78rem;
+  margin-bottom: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.weather-main {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.big-icon {
+  font-size: 3.8rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 12px rgba(100, 180, 255, 0.3));
+}
+
+.big-temp {
+  font-size: 3.8rem;
+  font-weight: 200;
+  letter-spacing: -3px;
+  line-height: 1;
+}
+
+.desc {
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: capitalize;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+  letter-spacing: 0.02em;
+}
+
+/* ── Stat Cards ───────────────────────────────────────────────────────────── */
+.stats {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 0.6rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 82px;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+
+.stat:hover {
+  background: rgba(100, 180, 255, 0.07);
+  border-color: rgba(100, 180, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.stat .s-label {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.28);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.stat .s-val {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Forecast Strip ───────────────────────────────────────────────────────── */
+.forecast {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  scrollbar-width: none;
+}
+
+.forecast::-webkit-scrollbar {
+  display: none;
+}
+
+.fc-day {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 62px;
+  cursor: default;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  flex-shrink: 0;
+}
+
+.fc-day:hover {
+  background: rgba(100, 180, 255, 0.08);
+  border-color: rgba(100, 180, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.fc-day .fc-name {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fc-day .fc-icon {
+  font-size: 1.35rem;
+}
+
+.fc-day .fc-hi {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.fc-day .fc-lo {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.28);
+}
+
+/* ── Hint Overlay ─────────────────────────────────────────────────────────── */
+.hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.78rem;
+  pointer-events: none;
+  z-index: 5;
+  text-align: center;
+  transition: opacity 1s;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .search-bar input {
+    width: 160px;
+    font-size: 0.88rem;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+  }
+
+  .big-temp,
+  .big-icon {
+    font-size: 2.8rem;
+  }
+
+  .city-row h2 {
+    font-size: 1.3rem;
+  }
+}
