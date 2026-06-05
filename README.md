@@ -1,83 +1,90 @@
-# 🌐 Atmosfera — Interactive Weather Globe
+# Atmosfera
 
-A real-time weather app built around an interactive 3D Earth. Search any city in the world and watch the globe animate to that location, displaying live weather conditions and a 5-day forecast.
+Atmosfera is an interactive weather globe built with Three.js, Open-Meteo, and OpenStreetMap geocoding. Search for any city and the 3D Earth rotates to that location while showing live weather conditions and a five-day forecast.
 
-**[🚀 Live Demo](https://chandra23225.github.io/Atmosfera/)**
+[Live demo](https://chandra23225.github.io/Atmosfera/)
 
----
+## Highlights
 
-## ✨ Features
+- Interactive 3D Earth with drag-to-rotate controls
+- Smooth fly-to animation when a city is searched
+- Current weather, feels-like temperature, humidity, wind, UV index, and rain chance
+- Five-day forecast with daily high/low temperatures
+- Location pin on the globe surface
+- No API keys required
+- Fully static frontend that can run on GitHub Pages
 
-- **3D Interactive Globe** — drag to rotate, powered by Three.js
-- **Fly-to Animation** — smooth camera-style rotation to any searched city
-- **Real-time Weather** — current temperature, feels like, humidity, wind speed, UV index, and rain chance
-- **5-Day Forecast** — daily high/low with weather icons
-- **Zero API Keys** — uses Open-Meteo (weather) and Nominatim/OpenStreetMap (geocoding), both free and open
-- **Responsive** — works on desktop and mobile
+## Data Sources
 
----
+- [Open-Meteo](https://open-meteo.com/): weather and forecast data
+- [Nominatim / OpenStreetMap](https://nominatim.org/): city geocoding
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-| Layer      | Technology |
-|------------|------------|
-| 3D Rendering | [Three.js r128](https://threejs.org/) |
-| Weather Data | [Open-Meteo API](https://open-meteo.com/) |
-| Geocoding  | [Nominatim (OpenStreetMap)](https://nominatim.org/) |
-| Frontend   | Vanilla HTML, CSS, JavaScript (no frameworks) |
-| Hosting    | GitHub Pages |
+- HTML
+- CSS
+- JavaScript
+- Three.js
+- GitHub Pages
 
----
+## Project Structure
 
-## 📁 Project Structure
-
-```
+```text
 Atmosfera/
-├── index.html        # App shell and markup
-├── css/
-│   └── style.css     # All styles
-├── js/
-│   └── app.js        # Globe setup, API calls, UI logic
-└── README.md
+|-- index.html
+|-- css/
+|   `-- style.css
+|-- js/
+|   `-- app.js
+|-- wea/
+|   `-- index.html
+`-- README.md
 ```
 
----
+## Run Locally
 
-## 🚀 Running Locally
-
-No build step or dependencies to install — just open the file:
+Clone the repository:
 
 ```bash
 git clone https://github.com/chandra23225/Atmosfera.git
 cd Atmosfera
-# Open index.html in your browser
 ```
 
-Or serve it with any static file server:
+Serve it with any static file server:
 
 ```bash
 npx serve .
 ```
 
----
+Or use Python:
 
-## 🌍 How It Works
+```bash
+python -m http.server 8080
+```
 
-1. User types a city name and hits search
-2. The app geocodes the city using Nominatim to get lat/lon coordinates
-3. Coordinates are sent to Open-Meteo to fetch current weather + forecast
-4. The globe animates (fly-to) to rotate the searched location to face the camera
-5. A location pin is placed on the globe surface
-6. The weather panel slides up with all data
+Then open:
 
----
+```text
+http://localhost:8080
+```
 
-## 📸 Preview
+You can also open `index.html` directly, but using a local server is more reliable for browser APIs and external assets.
 
-> Search a city → globe flies to it → weather panel appears
+## Deployment
 
----
+Atmosfera is a static site and is suitable for:
 
-## 📄 License
+- GitHub Pages
+- Netlify
+- Vercel
+- Cloudflare Pages
 
-MIT — free to use and modify.
+The current live version is hosted on GitHub Pages.
+
+## Notes
+
+Open-Meteo does not require an API key. Nominatim is a public geocoding service, so heavy production usage should follow OpenStreetMap's usage policy or move to a dedicated geocoding provider.
+
+## License
+
+MIT
