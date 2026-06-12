@@ -7,6 +7,9 @@
 'use strict';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DEFAULT_CITIES = ['London', 'Tokyo', 'New York', 'Paris', 'Dubai', 'Bengaluru'];
+const RECENT_CITY_KEY = 'atmosfera.recentCities';
+const MAX_RECENT_CITIES = 5;
 
 // ── WMO Weather Code Interpreter ──────────────────────────────────────────────
 /**
@@ -247,6 +250,57 @@ function showToast(msg) {
 
 function setLoading(on) {
   document.getElementById('spinner').classList.toggle('show', on);
+  document.getElementById('search-btn').disabled = on;
+}
+
+function normalizeCityName(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ');
+}
+
+function getRecentCities() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(RECENT_CITY_KEY) || '[]');
+    return Array.isArray(stored) ? stored.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentCity(city) {
+  const normalizedCity = normalizeCityName(city);
+  if (!normalizedCity) return;
+
+  const recentCities = getRecentCities().filter(
+    (item) => item.toLowerCase() !== normalizedCity.toLowerCase()
+  );
+  recentCities.unshift(normalizedCity);
+  localStorage.setItem(RECENT_CITY_KEY, JSON.stringify(recentCities.slice(0, MAX_RECENT_CITIES)));
+  renderQuickCities();
+}
+
+function renderQuickCities() {
+  const quickList = document.getElementById('quick-list');
+  const recentCities = getRecentCities();
+  const seen = new Set();
+  const cities = [...recentCities, ...DEFAULT_CITIES].filter((city) => {
+    const key = city.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  quickList.innerHTML = '';
+  cities.forEach((city) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'quick-chip';
+    chip.textContent = city;
+    chip.addEventListener('click', () => {
+      document.getElementById('city-input').value = city;
+      handleSearch(city);
+    });
+    quickList.appendChild(chip);
+  });
 }
 
 // ── Render Weather Panel ───────────────────────────────────────────────────────
@@ -296,8 +350,8 @@ function renderPanel(geo, weather) {
 }
 
 // ── Search Handler ─────────────────────────────────────────────────────────────
-async function handleSearch() {
-  const query = document.getElementById('city-input').value.trim();
+async function handleSearch(forcedQuery) {
+  const query = normalizeCityName(forcedQuery || document.getElementById('city-input').value);
   if (!query) return;
 
   setLoading(true);
@@ -312,6 +366,8 @@ async function handleSearch() {
     const weather = await fetchWeather(geo.lat, geo.lon);
     flyTo(geo.lat, geo.lon);
     renderPanel(geo, weather);
+    saveRecentCity(geo.city);
+    document.getElementById('city-input').value = geo.city;
   } catch (err) {
     showToast('Something went wrong — check your connection');
     console.error('[Atmosfera]', err);
@@ -324,6 +380,8 @@ document.getElementById('search-btn').addEventListener('click', handleSearch);
 document.getElementById('city-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') handleSearch();
 });
+
+renderQuickCities();
 
 // ── Intro Hint ─────────────────────────────────────────────────────────────────
 setTimeout(() => {

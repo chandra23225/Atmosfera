@@ -10,6 +10,7 @@ Atmosfera is an interactive weather globe built with Three.js, Open-Meteo, and O
 - Smooth fly-to animation when a city is searched
 - Current weather, feels-like temperature, humidity, wind, UV index, and rain chance
 - Five-day forecast with daily high/low temperatures
+- Quick city shortcuts and recent searches stored locally in the browser
 - Location pin on the globe surface
 - No API keys required
 - Fully static frontend that can run on GitHub Pages
