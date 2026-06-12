@@ -9,7 +9,12 @@
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DEFAULT_CITIES = ['London', 'Tokyo', 'New York', 'Paris', 'Dubai', 'Bengaluru'];
 const RECENT_CITY_KEY = 'atmosfera.recentCities';
+const FAVORITE_CITY_KEY = 'atmosfera.favoriteCities';
 const MAX_RECENT_CITIES = 5;
+const MAX_COMPARE_CITIES = 4;
+
+let currentLocation = null;
+let compareSnapshots = [];
 
 // ── WMO Weather Code Interpreter ──────────────────────────────────────────────
 /**
@@ -266,6 +271,47 @@ function getRecentCities() {
   }
 }
 
+function getFavoriteCities() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(FAVORITE_CITY_KEY) || '[]');
+    return Array.isArray(stored) ? stored.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function isFavoriteCity(city) {
+  const normalizedCity = normalizeCityName(city).toLowerCase();
+  return getFavoriteCities().some((item) => item.toLowerCase() === normalizedCity);
+}
+
+function toggleFavoriteCity(city) {
+  const normalizedCity = normalizeCityName(city);
+  if (!normalizedCity) return false;
+
+  const favorites = getFavoriteCities();
+  const existingIndex = favorites.findIndex((item) => item.toLowerCase() === normalizedCity.toLowerCase());
+
+  if (existingIndex >= 0) {
+    favorites.splice(existingIndex, 1);
+    localStorage.setItem(FAVORITE_CITY_KEY, JSON.stringify(favorites));
+    return false;
+  }
+
+  favorites.unshift(normalizedCity);
+  localStorage.setItem(FAVORITE_CITY_KEY, JSON.stringify(favorites.slice(0, MAX_RECENT_CITIES)));
+  return true;
+}
+
+function updateFavoriteButton(city) {
+  const button = document.getElementById('favorite-btn');
+  if (!button) return;
+
+  const isFavorite = isFavoriteCity(city);
+  button.textContent = isFavorite ? '★ Pinned' : '☆ Pin';
+  button.setAttribute('aria-pressed', String(isFavorite));
+}
+
 function saveRecentCity(city) {
   const normalizedCity = normalizeCityName(city);
   if (!normalizedCity) return;
@@ -281,8 +327,9 @@ function saveRecentCity(city) {
 function renderQuickCities() {
   const quickList = document.getElementById('quick-list');
   const recentCities = getRecentCities();
+  const favoriteCities = getFavoriteCities();
   const seen = new Set();
-  const cities = [...recentCities, ...DEFAULT_CITIES].filter((city) => {
+  const cities = [...favoriteCities, ...recentCities, ...DEFAULT_CITIES].filter((city) => {
     const key = city.toLowerCase();
     if (seen.has(key)) return false;
     seen.add(key);
@@ -293,13 +340,78 @@ function renderQuickCities() {
   cities.forEach((city) => {
     const chip = document.createElement('button');
     chip.type = 'button';
-    chip.className = 'quick-chip';
-    chip.textContent = city;
+    chip.className = isFavoriteCity(city) ? 'quick-chip favorite' : 'quick-chip';
+    chip.textContent = isFavoriteCity(city) ? `★ ${city}` : city;
     chip.addEventListener('click', () => {
       document.getElementById('city-input').value = city;
       handleSearch(city);
     });
     quickList.appendChild(chip);
+  });
+}
+
+function buildWeatherSnapshot(geo, weather) {
+  const cur = weather.current;
+  const info = wmoInfo(cur.weather_code);
+
+  return {
+    city: geo.city,
+    country: geo.country,
+    temp: Math.round(cur.temperature_2m),
+    description: info.label,
+    icon: info.icon,
+    humidity: cur.relative_humidity_2m,
+    wind: Math.round(cur.wind_speed_10m),
+    rain: cur.precipitation_probability || 0,
+  };
+}
+
+function addCompareSnapshot(snapshot) {
+  const key = `${snapshot.city},${snapshot.country}`.toLowerCase();
+  compareSnapshots = compareSnapshots.filter(
+    (item) => `${item.city},${item.country}`.toLowerCase() !== key
+  );
+  compareSnapshots.unshift(snapshot);
+  compareSnapshots = compareSnapshots.slice(0, MAX_COMPARE_CITIES);
+  renderCompareTray();
+}
+
+function renderCompareTray() {
+  const tray = document.getElementById('compare-tray');
+  const list = document.getElementById('compare-list');
+  if (!tray || !list) return;
+
+  tray.classList.toggle('visible', compareSnapshots.length >= 2);
+  list.innerHTML = '';
+
+  compareSnapshots.forEach((item) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'compare-card';
+
+    const city = document.createElement('span');
+    city.className = 'compare-city';
+    city.textContent = item.city;
+    if (item.country) {
+      const country = document.createElement('small');
+      country.textContent = item.country;
+      city.appendChild(country);
+    }
+
+    const temp = document.createElement('span');
+    temp.className = 'compare-temp';
+    temp.textContent = `${item.icon} ${item.temp}°C`;
+
+    const meta = document.createElement('span');
+    meta.className = 'compare-meta';
+    meta.textContent = `${item.description} · ${item.humidity}% hum · ${item.wind} km/h`;
+
+    card.append(city, temp, meta);
+    card.addEventListener('click', () => {
+      document.getElementById('city-input').value = item.city;
+      handleSearch(item.city);
+    });
+    list.appendChild(card);
   });
 }
 
@@ -347,6 +459,11 @@ function renderPanel(geo, weather) {
   }
 
   document.getElementById('panel').classList.add('visible');
+
+  const snapshot = buildWeatherSnapshot(geo, weather);
+  currentLocation = snapshot;
+  updateFavoriteButton(geo.city);
+  addCompareSnapshot(snapshot);
 }
 
 // ── Search Handler ─────────────────────────────────────────────────────────────
@@ -380,8 +497,24 @@ document.getElementById('search-btn').addEventListener('click', handleSearch);
 document.getElementById('city-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') handleSearch();
 });
+document.getElementById('favorite-btn').addEventListener('click', () => {
+  if (!currentLocation) {
+    showToast('Search a city before pinning it');
+    return;
+  }
+
+  const isFavorite = toggleFavoriteCity(currentLocation.city);
+  updateFavoriteButton(currentLocation.city);
+  renderQuickCities();
+  showToast(isFavorite ? `${currentLocation.city} pinned` : `${currentLocation.city} unpinned`);
+});
+document.getElementById('clear-compare').addEventListener('click', () => {
+  compareSnapshots = [];
+  renderCompareTray();
+});
 
 renderQuickCities();
+renderCompareTray();
 
 // ── Intro Hint ─────────────────────────────────────────────────────────────────
 setTimeout(() => {

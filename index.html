@@ -30,6 +30,14 @@
     <div class="quick-list" id="quick-list"></div>
   </div>
 
+  <div class="compare-tray" id="compare-tray" aria-live="polite">
+    <div class="compare-head">
+      <span>Weather Compare</span>
+      <button id="clear-compare" type="button">Clear</button>
+    </div>
+    <div class="compare-list" id="compare-list"></div>
+  </div>
+
   <div id="globe-container" role="img" aria-label="Interactive 3D Earth globe">
     <canvas id="globe-canvas"></canvas>
     <div class="spinner" id="spinner" aria-hidden="true"></div>
@@ -42,6 +50,7 @@
       <div class="city-row">
         <h2 id="p-city">--</h2>
         <span class="country" id="p-country"></span>
+        <button class="favorite-btn" id="favorite-btn" type="button" aria-label="Pin current city">☆ Pin</button>
       </div>
       <div class="date-row" id="p-date"></div>
       <div class="weather-main">
