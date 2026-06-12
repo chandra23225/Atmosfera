@@ -19,6 +19,47 @@ Atmosfera is an interactive weather globe built with Three.js, Open-Meteo, and O
 - [Open-Meteo](https://open-meteo.com/): weather and forecast data
 - [Nominatim / OpenStreetMap](https://nominatim.org/): city geocoding
 
+## Workflow
+
+```mermaid
+flowchart TD
+    A[User opens Atmosfera] --> B[Three.js scene initializes]
+    B --> C[3D Earth, lights, camera, and controls render]
+    C --> D[User searches for a city]
+
+    D --> E[Nominatim / OpenStreetMap geocoding request]
+    E --> F{Location found?}
+    F -->|No| G[Show location error]
+    F -->|Yes| H[Read latitude, longitude, city, and country]
+
+    H --> I[Rotate globe toward selected coordinates]
+    I --> J[Place location pin on globe]
+
+    H --> K[Open-Meteo weather request]
+    K --> L[Current weather response]
+    K --> M[Five-day forecast response]
+
+    L --> N[Update current conditions panel]
+    M --> O[Update forecast cards]
+
+    N --> P[Display temperature, feels-like,<br/>humidity, wind, UV, rain chance]
+    O --> Q[Display daily high/low forecast]
+
+    P --> R[User can drag and inspect globe]
+    Q --> R
+    R --> D
+```
+
+### Workflow Summary
+
+1. The browser loads the static frontend and initializes the Three.js globe.
+2. The user searches for a city.
+3. Nominatim converts the city name into latitude and longitude.
+4. The globe rotates to the selected location and places a pin on the surface.
+5. Open-Meteo returns current weather and forecast data for that coordinate.
+6. The UI updates the current weather panel and five-day forecast cards.
+7. The user can keep interacting with the globe or search for another location.
+
 ## Tech Stack
 
 - HTML
